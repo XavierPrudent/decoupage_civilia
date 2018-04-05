@@ -1,9 +1,7 @@
 
 #######################################
 ## Carte du Saguenay 
-#coord <<- geocode('Saguenay')
 coord <<- data.frame(lon=-71.06849,lat=48.42805)
-#sg.map <<- get_map(c(lon=coord$lon, lat=coord$lat),zoom = 9, maptype = "terrain", source = "stamen")
 
 #######################################
 ## Carte des secteurs municipaux

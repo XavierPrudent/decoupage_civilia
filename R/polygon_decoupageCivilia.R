@@ -1,7 +1,32 @@
 
-
 ####################################
 plot.decoupage.Civilia <- function(){
+  
+  ## Carte satellite
+  map.city <- leaflet() %>% 
+    addTiles('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png') %>%
+    setView(coord$lon, coord$lat, zoom = 11)
+  
+  ## Zones
+  for( i in 1:length(zone.list)){
+    zone.df <- zone.list[[i]]
+    if( i == 1 ) which.map <- map.city else which.map <- map1
+    map1 <- addPolygons(which.map, 
+                        lng=zone.list[[i]]$lon,
+                        lat=zone.list[[i]]$lat,
+                        opacity=1,
+                        label=comment(zone.list[[i]]),
+                        group="Zones")
+  }
+  
+  ## Points
+  coins$i <- 1:nrow(coins)
+  map1 <- map1 %>% addCircles(coins$lon,coins$lat,color="red",label=as.character(coins$i))
+  return(map1)
+}
+
+####################################
+plot.decoupage.Civilia.gtfs <- function(){
   
   ## Saguenay GTFS
   stops <- fread("/Users/lavieestuntoucan/Civilia/projets/Saguenay/data/gtfs-static/gtfs-2017/stops.txt")
@@ -74,7 +99,8 @@ plot.decoupage.Civilia <- function(){
 ####################################
 create.polygone <- function(){
   ## Coins des polygones
-  coins <<- data.frame(lat = rep(x=NA,49), lon = rep(x=NA,49))
+  n <- 63
+  coins <<- data.frame(lat = rep(x=NA,n), lon = rep(x=NA,n))
   coins[1,] <<- c(48.43008935405231, -71.07193152957763)
   coins[2,] <<- c(48.42593172234239, -71.0720173602661)
   coins[3,] <<- c(48.424821064525354,-71.08060042911376)
@@ -124,6 +150,21 @@ create.polygone <- function(){
   coins[47,] <<- c(48.39111271686701,-71.06041402012937)
   coins[48,] <<- c(48.39627052094977,-71.05603665501707)
   coins[49,] <<- c(48.432524,-71.051009)
+  coins[50,] <<- c(48.425228, -71.049524)
+  coins[51,] <<- c(48.422050, -71.051949)
+  coins[52,] <<- c(48.422634, -71.054534)
+  coins[53,] <<- c(48.422601, -71.056200)
+  coins[54,] <<- c(48.423484, -71.057230)
+  coins[55,] <<- c(48.451108, -71.001333)
+  coins[56,] <<- c(48.249969, -70.053076)
+  coins[57,] <<- c(48.645301, -69.770178)
+  coins[58,] <<- c(48.904138, -71.357702)
+  coins[59,] <<- c(48.589752, -71.662573)
+  coins[60,] <<- c(48.458224, -71.272335)
+  coins[61,] <<- c(48.454581, -71.177578)
+  coins[62,] <<- c(47.751250, -70.506725)
+  coins[63,] <<- c(48.001791, -71.858044)
+  
   
   ## zone 16
   zone16 <<- c(1,2,3,4,5,6,7,8,9)
@@ -141,7 +182,7 @@ create.polygone <- function(){
   comment(zoneTerm) <<- "zoneTerm"
   
   ## zone 14a
-  zone14a <<- c(2,10,11,15,25,26)
+  zone14a <<- c(2,10,11,15,54,25,26)
   zone14a <<- coins[zone14a,]
   comment(zone14a) <<- "zone14a"
   
@@ -161,12 +202,12 @@ create.polygone <- function(){
   comment(zone2a) <<- "zone2a"
   
   ## zone Hop
-  zoneHop <<- c(12,49,13,14,15,11)
+  zoneHop <<- c(12,49,13,14,50,15,11)
   zoneHop <<- coins[zoneHop,]
   comment(zoneHop) <<- "zoneHop"
   
   ## zone Uni
-  zoneUni <<- c(15,14,22,23,24,25)
+  zoneUni <<- c(25,54,53,52,51,50,14,22,23,24)
   zoneUni <<- coins[zoneUni,]
   comment(zoneUni) <<- "zoneUni"
   
@@ -215,9 +256,34 @@ create.polygone <- function(){
   zone15a <<- coins[zone15a,]
   comment(zone15a) <<- "zone15a"
   
-  ############
+  ## zone cegep
+  zoneCegep <<- c(15,50,51,52,53,54)
+  zoneCegep <<- coins[zoneCegep,]
+  comment(zoneCegep) <<- "zoneCegep"
+  
+  ## zone nord
+  zoneNord <<- c(8,9,1,12,49,13,16,17,55,56,57,58,59,60,61)
+  zoneNord <<- coins[zoneNord,]
+  comment(zoneNord) <<- "zoneNord"
+  
+  ## zone sud
+  zoneSud <<- c(59,60,61,8,7,6,5,4,35,34,33,36,37,47,46,45,41,42,20,19,18,17,55,56,62,63)
+  zoneSud <<- coins[zoneSud,]
+  comment(zoneSud) <<- "zoneSud"
+
+    ############
   ## Loop sur les zones
-  zone.list <<- list(zone16,zone11,zoneTerm,zone14a,zone14b,zone14c,zone2a,zoneHop,zoneUni,zone5b,zone15b,zone12,zone10,zone2d,zone2c,zone2b,zone5a,zone15a)
+  zone.list <<- list(zone16,zone11,
+                     zoneTerm,zone14a,
+                     zone14b,zone14c,
+                     zone2a,zoneHop,
+                     zoneUni,zone5b,
+                     zoneCegep,zoneNord,
+                     zoneSud,
+                     zone15b,zone12,
+                     zone10,zone2d,
+                     zone2c,zone2b,
+                     zone5a,zone15a)
   zone.names <<- sapply(zone.list,comment)
   
 }
