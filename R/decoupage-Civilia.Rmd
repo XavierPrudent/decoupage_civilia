@@ -1,0 +1,196 @@
+---
+title: "Découpage Saguenay 2015"
+author: "Civilia"
+date: "27 septembre 2017"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T)
+```
+
+<br><br>
+
+```{r, echo=F, out.width = "400px", include=T,warning=F,message=F,fig.align='center'}
+## Logo de Civilia
+knitr::include_graphics("/Users/lavieestuntoucan/Civilia/projets/Saguenay/tech/CIVILIA_logo_couleur_mac.png")
+```
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='65%'}
+source("/Users/lavieestuntoucan/Civilia/tech/general/load_R_pkg.R")
+source("/Users/lavieestuntoucan/Civilia/projets/Saguenay/tech/decoupage civilia/commodites.R")
+source("/Users/lavieestuntoucan/Civilia/projets/Saguenay/tech/decoupage civilia/polygon_decoupageCivilia.R")
+```
+
+<br><br>
+
+# Nouveau découpage du secteur de Chicoutimi
+
+<br><br>
+
+Un découpage en 18 zones, plus adapté à la réalité géographique et sociale de Chicoutimi a été dessiné le 5 septembre 2017 par Civilia avec Sébastien Comeau.
+
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Coordinates of the new polygon
+create.polygone()
+## Plot the decoupage with the bus lines, stops and construction points
+plot.decoupage.Civilia()
+```
+
+<br><br>
+
+# Matrices OD avec ce nouveau découpage
+
+<br><br>
+
+Le décompte pondéré des déplacements, excluant le retour à la maison, est représenté dans les matrices OD suivantes pour le découpage Civilia.
+
+<br><br>
+
+## Déplacements par périodes
+
+### Déplacements motorisés sur 24h sans retour à la maison
+
+<br><br>
+
+Le décompte pondéré des déplacements sur 24h, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+
+## Input data
+d0 <- readRDS(file="/Users/lavieestuntoucan/Civilia/projets/Saguenay/data/enquete OD 2015/sag15pv1.rds")
+
+## Voyages motorisés dans Chicoutimi
+d1 <- d0 %>% 
+  filter(vsagori == "Chicoutimi" & vsagdes == "Chicoutimi") %>%
+  filter(mode1 %in% motor | mode2 %in% motor | mode3 %in% motor ) %>% 
+  filter(motif != 12) %>%
+   select(cledeplacement,xlondes,ylatdes,xlonori,ylatori,ghredep,facdep,motif_gr) %>%
+   distinct(cledeplacement,xlondes,ylatdes,xlonori,ylatori,ghredep,facdep,motif_gr) 
+
+## Assigne les zones pour chaque déplacements
+# Les variables des secteurs municupaux sont remplacées par les nouvelles zones
+d1 <- mutate( d1, smori = NA, smdes = NA )
+
+for( i in 1:length(zone.list)){
+  ## Dataframe and name for that zone
+  df <- zone.list[[i]]
+  cdf <- comment(df)
+  ## Assigne la zone aux origines et destinations
+  d1 <- d1 %>% 
+    mutate(smdes = ifelse(point.in.polygon(ylatdes, xlondes, df$lat, df$lon, mode.checked=FALSE)==1, cdf, smdes),
+           smori = ifelse(point.in.polygon(ylatori, xlonori, df$lat, df$lon, mode.checked=FALSE)==1, cdf, smori))
+}
+
+## Retire les NA
+d1 <- d1 %>% filter(!is.na(smori) & !is.na(smdes))
+
+## Crée la matrice OD
+sm.n <<- length(zone.list)
+odmat.cree.plot(data=d1,list.sm=zone.names,title="")
+```
+
+
+### Déplacements motorisés pointe AM (6-9) sans retour à la maison
+
+<br><br>
+
+Le décompte pondéré des déplacements pour la pointe AM 6-9, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(ghredep == 1)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés milieu de journée (9-15) sans retour à la maison
+
+<br><br>
+
+Le décompte pondéré des déplacements pour le milieu de journée (9-15), excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(ghredep == 2)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés en pointe PM (15-18) sans retour à la maison
+
+<br><br>
+
+Le décompte pondéré des déplacements en pointe PM (15-18), excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(ghredep == 3)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés en soirée et nuit (18-6) sans retour à la maison
+
+<br><br>
+
+Le décompte pondéré des déplacements en soirée et nuit (18-6), excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(ghredep == 4 | ghredep == 5)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+## Déplacements par motif
+
+### Déplacements motorisés sur 24h pour le travail
+
+<br><br>
+
+Le décompte pondéré des déplacements sur 24h pour le travail, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(motif_gr == 1)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés sur 24h pour les études
+
+<br><br>
+
+Le décompte pondéré des déplacements sur 24h pour les études, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(motif_gr == 2)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés sur 24h pour le magasinage
+
+<br><br>
+
+Le décompte pondéré des déplacements sur 24h pour le magasinage, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(motif_gr == 3)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
+
+### Déplacements motorisés sur 24h pour les loisirs
+
+<br><br>
+
+Le décompte pondéré des déplacements sur 24h pour les loisirs, excluant le retour à la maison, est représenté dans cette matrice OD pour le découpage Civilia :
+
+```{r, echo=F, include=T,warning=F,message=F,fig.align='center', out.width='100%'}
+## Crée la matrice OD
+d2 <- d1 %>% filter(motif_gr == 5)
+odmat.cree.plot(data=d2,list.sm=zone.names,title="")
+```
